@@ -102,7 +102,7 @@ function assignValues(o){fields().forEach(e=>{const v=o?.[e.type==='radio'?e.nam
 function state(){return {values:allValues(),attempts:{...attempts},checkLog:{...checkLog},reviewed,coachReq,coachText:$('coachFeedback').textContent}}
 function setState(s){assignValues(s?.values||{});attempts={sort:0,health:0,auto:0,...s?.attempts};checkLog={sort:'',health:'',auto:'',...s?.checkLog};reviewed=!!s?.reviewed;coachReq=s?.coachReq||'';$('coachFeedback').textContent=s?.coachText||'';updateChecks();$('pdf').disabled=!reviewed}
 function pack(){return {rev,dirty,req:activeReq,state:state(),savedAt:Date.now()}}
-function persist(){if(!alias)return;try{localStorage.setItem(storageKey(),JSON.stringify(pack()));indicator('Saved on this device');}catch(e){indicator('Local storage unavailable — use Emergency PDF')}updateProgress()}
+function persist(){if(!alias)return;try{localStorage.setItem(storageKey(),JSON.stringify(pack()));if(dirty||!cloudReady)indicator('Saved on this device');}catch(e){indicator('Local storage unavailable — use Emergency PDF')}updateProgress()}
 function indicator(msg){$('saveIndicator').textContent=msg;$('cloudStatus').textContent=msg}
 function markEdit(){if(!alias)return;dirty=true;activeReq=rid();reviewed=false;$('pdf').disabled=true;persist();schedule()}
 function schedule(){clearTimeout(timer);if(cloudReady&&!offline&&!conflict)timer=setTimeout(saveCloud,1800)}
@@ -123,7 +123,7 @@ enter();indicator(result.found?'Cloud verified — work restored':'Cloud checked
 finally{loading=false;$('start').disabled=false}}
 function enter(){$('gate').classList.add('off');$('workspace').classList.remove('off');$('aliasDisplay').textContent='Student alias: '+alias;updateProgress();persist()}
 function showConflict(message){conflict=true;cloudReady=false;$('conflictPanel').classList.remove('off');$('conflictDetails').textContent=message;indicator('Conflict — both copies protected');$('gateMsg').textContent='Resolve the version choice below.'}
-function localBackup(){const b=new Blob([JSON.stringify({lessonId:LESSON,alias,backupAt:new Date().toISOString(),local:pack(),cloud:remote},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='insurance-day2-backup-'+alias+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function localBackup(){const b=new Blob([JSON.stringify({lessonId:LESSON,alias,backupAt:new Date().toISOString(),local:pack(),cloud:remote},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=window.URL.createObjectURL(b);a.download='insurance-day2-backup-'+alias+'.json';a.click();setTimeout(()=>window.URL.revokeObjectURL(a.href),2000)}
 function useCloud(){if(!remote?.found)return alert('No cloud copy is available.');localBackup();setState(remote.state);rev=remote.revision;dirty=false;activeReq='';conflict=false;cloudReady=true;$('conflictPanel').classList.add('off');enter();indicator('Cloud verified — cloud version loaded')}
 function keepLocal(){if(!local)return alert('No device copy available.');setState(local.state);rev=local.rev||0;dirty=true;activeReq=local.req||rid();conflict=false;cloudReady=false;offline=true;$('conflictPanel').classList.add('off');enter();indicator('Saved on this device — cloud held to protect conflict')}
 async function saveCloud(){if(!alias||!cloudReady||offline||conflict||sending||!dirty)return;clearTimeout(timer);sending=true;const snap=state(),json=JSON.stringify(snap),req=activeReq||rid(),base=rev;activeReq=req;lastSent=req;indicator('Saving to cloud…');try{
@@ -133,7 +133,7 @@ let ack=null;for(let i=0;i<5;i++){await sleep(700+300*i);try{ack=await cloudRead
 if(!ack?.applied){if(ack?.conflict){showConflict('The cloud changed while this page was editing. Your local work is retained; export a backup before choosing a version.')}else throw Error('No confirmed matching cloud receipt');return}
 if(ack.stateHash!==expected)throw Error('Cloud checksum does not match the submitted snapshot');
 rev=ack.revision;if(activeReq===req&&JSON.stringify(state())===json){dirty=false;activeReq='';indicator('Cloud verified — all changes saved')}else{dirty=true;indicator('Saved on this device — newer changes pending')}
-persist();
+persist();if(!dirty)indicator('Cloud verified — all changes saved');
 }catch(e){indicator('Cloud unavailable — work retained on this device');dirty=true;persist()}
 finally{sending=false;if(dirty&&cloudReady&&!conflict&&!offline)schedule()}}
 function completion(){const ids=sections.flatMap(s=>s[1]);let total=0,filled=0;ids.forEach(id=>{total++;if(String(valueOf(id)).trim())filled++});return {filled,total,pct:Math.round(100*filled/total)}}
