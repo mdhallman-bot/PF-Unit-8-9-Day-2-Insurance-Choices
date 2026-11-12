@@ -22,7 +22,7 @@ label{display:block;font-weight:660;margin:12px 0 5px}label .small{font-weight:4
 :focus-visible{outline:3px solid #df8b0c!important;outline-offset:2px}.frames{margin:4px 0 14px;background:#f0f5f9;border-radius:7px;padding:8px 12px;color:#3f5469;font-size:.87rem}.frames p{margin:3px 0}
 .status{position:fixed;z-index:80;bottom:10px;right:10px;max-width:310px;background:white;border:1px solid var(--border);padding:9px 13px;border-radius:9px;box-shadow:0 4px 15px #1233;font-size:.82rem}
 .off{display:none!important}.feedback{min-height:1.2em;color:#245d83;font-weight:600;margin:5px 0}.pill{display:inline-block;border-radius:100px;background:#dbeaf4;color:#153a56;font-size:.8rem;font-weight:800;padding:3px 11px;margin-bottom:7px}
-.rank{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:7px;padding:6px 9px;margin:5px 0}.rank .num{background:#e2edf5;border-radius:6px;width:29px;text-align:center;font-weight:800}.rank span.name{flex:1;font-weight:650}
+.rank{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:7px;padding:6px 9px;margin:5px 0}.rank .num{background:#e2edf5;border-radius:6px;width:29px;text-align:center;font-weight:800}.rank span.name{flex:1;font-weight:650}.rank{cursor:grab;user-select:none;touch-action:pan-y;min-height:52px}.rank:active{cursor:grabbing}.rank.dragging{opacity:.55;border-style:dashed}.rank.drag-over{background:#dceffc;border:2px solid #22618d}.rank .grip{font-size:1.3rem;color:#61798e;letter-spacing:1px;margin-left:auto;pointer-events:none}.rank-hint{font-size:.86rem;color:#53687c;margin:5px 0 12px}
 .choice{margin:9px 0;border:1px solid var(--border);border-radius:8px;padding:9px}.choice label{display:flex;align-items:flex-start;gap:8px;margin:0;font-weight:500}.choice input[type=radio]{width:auto;flex:none;margin-top:6px}
 fieldset{border:0;padding:0;margin:8px 0}legend{font-weight:750}.tag{background:#eaf3f9;border-radius:6px;padding:2px 7px;color:#174a6e;font-size:.83rem}
 .meter{font-weight:800;font-size:1.13rem;color:var(--navy)}.scrollhint{font-size:.83rem;color:#465b72}
@@ -37,7 +37,7 @@ fieldset{border:0;padding:0;margin:8px 0}legend{font-weight:750}.tag{background:
 <section class="panel no-print"><div class="row"><span class="pill">How to work</span><strong id="studentDisplay"></strong></div><p>Complete each investigation using the teacher's slides or the explanations here. All edits save immediately on this device and attempt cloud sync. Stop after building Jordan's plan if you need to finish Jordan's Year at home.</p><p><strong>Finish:</strong> Submit for Review → Download Assignment PDF → upload PDF to Google Classroom. The separate Google Forms vocabulary quiz is not repeated here.</p><button id="saveBtn">Save now</button><span id="saveText" role="status">Not yet synced</span><div class="tension" role="note"><div class="eyebrow">The central tension of insurance</div><h2>You know what protection costs. You don't know what a year without it might cost.</h2><p>You might pay premiums for twelve ordinary months and never file a claim. Or one accident or illness could create a financially catastrophic loss. Buying insurance does not guarantee a claim—and declining it does not eliminate the risk.</p><p><strong>Ask yourself:</strong> Could Jordan pay for the worst credible loss without shifting the burden to someone else?</p></div></section>
 
 <section class="panel"><span class="pill">Part 1 · Priorities and insurance detective</span><h2>What would you protect first?</h2><p>Jordan is 23, rents an apartment, owns a $7,000 car outright, has $1,100 saved, needs wage income for living costs, and has no children or other dependents. Rank the five types by how urgently Jordan should investigate them. The order is automatically shuffled, not a suggested answer. Move items into your chosen order, then confirm. There is no automatic perfect order.</p>
-<div id="ranking"></div><label for="initialConfirm">Confirm that this is your chosen starting order</label><select id="initialConfirm" data-save data-required><option value="">Select after deciding</option><option value="Confirmed">This is my chosen order</option></select>
+<p class="rank-hint">Drag the cards into your preferred order. For keyboard use, focus a card and press Alt + ↑ or ↓.</p><div id="ranking"></div><label for="initialConfirm">Confirm that this is your chosen starting order</label><select id="initialConfirm" data-save data-required><option value="">Select after deciding</option><option value="Confirmed">This is my chosen order</option></select>
 <label for="initialReason">Why did you rank your first and last choices where you did?</label><textarea id="initialReason" data-save data-required></textarea><div class="frames"><p>“I ranked ___ first because Jordan could lose ___.”</p><p>“Although ___ matters, I placed it last because ___ is a more immediate financial exposure for Jordan.”</p></div>
 <h3>Insurance in plain language</h3>
 <div class="grid">
@@ -134,7 +134,7 @@ fieldset{border:0;padding:0;margin:8px 0}legend{font-weight:750}.tag{background:
 <section class="panel"><span class="pill">Part 5 · Reconsider and explain</span><h2>Would you change your plan?</h2>
 <p>Choose ONE type to reconsider using the alternative quote and compare the same year. This is not a chance to change the plan retroactively; it is a learning comparison.</p><label for="alternateType">Which coverage type will you revisit?</label><select id="alternateType" data-save data-required><option value="">Choose a type</option><option value="auto">Auto</option><option value="health">Health</option><option value="renters">Renters</option><option value="disability">Disability</option><option value="life">Life</option></select>
 <label for="alternateChoice">Alternative policy for that type</label><select id="alternateChoice" data-save data-required><option value="">Choose a different policy</option></select><div class="tile" id="alternateResult">Lock the plan, then choose a different policy to compare.</div>
-<h3>Revisit your starting priorities</h3><p>Reorder the same five protections now that you've examined policy prices and potential losses.</p><div id="finalRanking"></div><label for="finalConfirm">Confirm that this is your final order</label><select id="finalConfirm" data-save data-required><option value="">Select after deciding</option><option value="Confirmed">This is my chosen final order</option></select>
+<h3>Revisit your starting priorities</h3><p>Reorder the same five protections now that you've examined policy prices and potential losses.</p><p class="rank-hint">Drag to revise your priorities (or use Alt + ↑ / ↓ on a focused card).</p><div id="finalRanking"></div><label for="finalConfirm">Confirm that this is your final order</label><select id="finalConfirm" data-save data-required><option value="">Select after deciding</option><option value="Confirmed">This is my chosen final order</option></select>
 <label for="finalReason">What moved in your ranking? If nothing moved, explain what evidence supports keeping your original priorities.</label><textarea id="finalReason" data-save data-required></textarea><div class="frames"><p>“I moved ___ higher/lower because ___.”</p><p>“My ranking stayed similar because the simulation showed ___, though I now recognize ___.”</p></div>
 <h3>The $50,000 question</h3><p>Imagine an accident creates a $50,000 obligation and the driver's insurance does not pay all of it. They have $1,100 in savings. A possible funding gap is not guaranteed to become a loan; repayment, insurance disputes and legal options depend on circumstances.</p>
 <label for="responsibility">Where could Jordan realistically turn if he owed far more than he could pay? How might asking for help affect someone else, and does it change your view of coverage?</label><textarea id="responsibility" data-save data-required></textarea><div class="frames"><p>“Jordan could first investigate ___, but ___ might not be available.”</p><p>“Asking family or friends could affect their ___; knowing that makes me reconsider ___ because ___.”</p></div>
@@ -191,8 +191,60 @@ if(index<source.length)frag.append(document.createTextNode(source.slice(index)))
 function defineTerms(){document.querySelectorAll('.term').forEach(t=>{const d=t.getAttribute('data-def');if(!d)return;t.tabIndex=0;const n=document.createElement('span');n.className='tip';n.textContent=d;t.append(n);t.addEventListener('click',()=>t.classList.toggle('open'));t.addEventListener('blur',()=>t.classList.remove('open'));t.addEventListener('keydown',e=>{if(e.key==='Escape')t.classList.remove('open')})})}
 function renderDetect(){const root=$('detective');detectItems.forEach((x,i)=>{const label=document.createElement('label');label.htmlFor='detect'+i;label.textContent=(i+1)+'. '+x[0];const sel=document.createElement('select');sel.id='detect'+i;sel.setAttribute('data-save','');sel.setAttribute('data-required','');detectChoices.forEach(v=>sel.add(new Option(v||'Choose coverage',v)));root.append(label,sel)})}
 function shuffledForAlias(code){const arr=[...terms];let seed=0;for(const ch of String(code)){seed=(seed*31+ch.charCodeAt(0))>>>0}for(let i=arr.length-1;i>0;i--){seed=(1664525*seed+1013904223)>>>0;const j=seed%(i+1);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
-function renderRank(id,order){const root=$(id);root.innerHTML='';order.forEach((name,i)=>{const row=document.createElement('div');row.className='rank';const count=document.createElement('span');count.className='num';count.textContent=i+1;const title=document.createElement('span');title.className='name';title.textContent=name;const up=document.createElement('button'),down=document.createElement('button');up.type=down.type='button';up.textContent='↑';down.textContent='↓';up.setAttribute('aria-label','Move '+name+' higher');down.setAttribute('aria-label','Move '+name+' lower');up.disabled=i===0;down.disabled=i===order.length-1;up.onclick=()=>swapRank(id,i,-1);down.onclick=()=>swapRank(id,i,1);row.append(count,title,up,down);root.append(row)})}
-function swapRank(id,i,n){if(locked&&id==='ranking')return;if(id==='ranking')$('initialConfirm').value='';else $('finalConfirm').value='';const v=id==='ranking'?initialRank:finalRank;[v[i],v[i+n]]=[v[i+n],v[i]];renderRank(id,v);markEdit()}
+let draggingRank=null,touchRank=null;
+function moveRank(id,from,to){
+if(id==='ranking'&&locked)return;
+const order=id==='ranking'?initialRank:finalRank;
+if(from<0||to<0||from>=order.length||to>=order.length||from===to)return;
+const item=order.splice(from,1)[0];order.splice(to,0,item);
+$(id==='ranking'?'initialConfirm':'finalConfirm').value='';
+renderRank(id,order);markEdit();
+}
+function renderRank(id,order){
+const root=$(id);root.innerHTML='';
+root.setAttribute('role','list');root.setAttribute('aria-label',id==='ranking'?'Initial insurance priorities':'Final insurance priorities');
+order.forEach((name,i)=>{
+const row=document.createElement('div');row.className='rank';row.setAttribute('role','listitem');row.tabIndex=0;row.draggable=!(locked&&id==='ranking');
+row.dataset.index=String(i);row.setAttribute('aria-label',name+', position '+(i+1)+' of '+order.length+'. Drag to reorder; keyboard Alt plus up or down arrow.');
+const count=document.createElement('span');count.className='num';count.textContent=i+1;
+const title=document.createElement('span');title.className='name';title.textContent=name;
+const grip=document.createElement('span');grip.className='grip';grip.setAttribute('aria-hidden','true');grip.textContent='⠿';
+row.append(count,title,grip);
+row.addEventListener('dragstart',event=>{
+if(locked&&id==='ranking'){event.preventDefault();return}
+draggingRank={id,from:i};event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',String(i));row.classList.add('dragging');
+});
+row.addEventListener('dragover',event=>{if(!draggingRank||draggingRank.id!==id)return;event.preventDefault();event.dataTransfer.dropEffect='move';row.classList.add('drag-over')});
+row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+row.addEventListener('drop',event=>{event.preventDefault();row.classList.remove('drag-over');if(draggingRank?.id===id){const from=draggingRank.from;draggingRank=null;moveRank(id,from,i)}});
+row.addEventListener('dragend',()=>{draggingRank=null;root.querySelectorAll('.dragging,.drag-over').forEach(el=>el.classList.remove('dragging','drag-over'))});
+row.addEventListener('keydown',event=>{
+if(event.altKey&&(event.key==='ArrowUp'||event.key==='ArrowDown')){
+event.preventDefault();const newPos=i+(event.key==='ArrowUp'?-1:1);moveRank(id,i,newPos);const next=root.querySelector('[data-index="'+newPos+'"]');next?.focus();
+}});
+row.addEventListener('pointerdown',event=>{
+if(event.pointerType==='mouse'||locked&&id==='ranking')return;
+touchRank={id,from:i,to:i,startX:event.clientX,startY:event.clientY,active:false};
+});
+row.addEventListener('pointermove',event=>{
+if(!touchRank||touchRank.id!==id||touchRank.from!==i)return;
+if(!touchRank.active&&Math.hypot(event.clientX-touchRank.startX,event.clientY-touchRank.startY)<12)return;
+touchRank.active=true;row.style.touchAction='none';
+const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.rank');
+root.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+if(target&&root.contains(target)){touchRank.to=Number(target.dataset.index);target.classList.add('drag-over')}
+});
+row.addEventListener('pointerup',()=>{
+if(!touchRank||touchRank.id!==id||touchRank.from!==i)return;
+const drag=touchRank;touchRank=null;
+root.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+row.style.touchAction='';
+if(drag.active)moveRank(id,drag.from,drag.to);
+});
+row.addEventListener('pointercancel',()=>{touchRank=null;row.style.touchAction='';root.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'))});
+root.append(row);
+});
+}
 function renderPolicies(){const root=$('policyCards');const titles={auto:'Auto insurance (required liability included)',health:'Health insurance',renters:'Renters insurance',disability:'Disability income insurance',life:'Term life insurance'};Object.entries(opts).forEach(([type,options])=>{const h=document.createElement('h3');h.textContent=titles[type];root.append(h);const wrap=document.createElement('div');wrap.className='policy-grid';options.forEach((opt,i)=>{const div=document.createElement('div');div.className='choice';const label=document.createElement('label');const radio=document.createElement('input');radio.type='radio';radio.name='policy_'+type;radio.value=opt.id;radio.setAttribute('data-save','');radio.setAttribute('data-required','');const desc=document.createElement('span');const title=document.createElement('strong');title.textContent=opt.name+' — '+money(opt.prem)+'/month';const detail=document.createElement('div');detail.className='small';detail.textContent=opt.desc;desc.append(title,detail);label.append(radio,desc);div.append(label);wrap.append(div)});root.append(wrap)})}
 function policy(type,values){const v=(values||getValues())['policy_'+type];return opts[type].find(x=>x.id===v)||null}
 function selectedPlan(values){return Object.keys(opts).every(k=>policy(k,values))}
