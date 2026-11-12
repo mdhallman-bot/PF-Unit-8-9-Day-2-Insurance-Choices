@@ -12,7 +12,23 @@ h2{color:var(--navy);font-size:1.36rem;margin:0 0 9px}h3{color:var(--navy);font-
 .note{padding:12px 15px;background:#eaf3fa;border-left:4px solid var(--blue);margin:12px 0}
 .tension{margin:20px 0 25px;padding:23px;border:3px solid #b36b15;border-left:10px solid #b36b15;background:#fff2d7;color:#392b18;border-radius:12px;box-shadow:0 5px 16px #a46a2524}
 .tension .eyebrow{font-size:.84rem;letter-spacing:.09em;text-transform:uppercase;font-weight:850;color:#794709}.tension h2{font-size:clamp(1.28rem,2.4vw,1.72rem);line-height:1.3;margin:8px 0;color:#5a3610}.tension p{font-size:1.05rem;font-weight:520}
-.policy-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.policy-grid .choice{margin:0;min-width:0;height:100%}.policy-grid .choice label{height:100%;padding:3px}.policy-grid .choice strong{display:block;line-height:1.35;margin-bottom:8px}
+.comparison-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:12px 0 20px;box-shadow:0 2px 9px #1634510c}
+.compare-table{border:0;border-collapse:separate;border-spacing:3px;min-width:730px;width:100%;margin:0;background:white;table-layout:fixed}
+.compare-table th,.compare-table td{border:0;vertical-align:middle;padding:11px 12px;overflow-wrap:anywhere}
+.compare-table thead th{background:#1b4d7e;color:white;text-align:center;border-radius:9px 9px 4px 4px}
+.compare-table thead th:first-child{background:#173553;width:26%;text-align:left}
+.compare-table tbody tr:nth-child(odd)>*{background:#eef3f7}.compare-table tbody tr:nth-child(even)>*{background:#dfe6ec}
+.compare-table tbody th{font-weight:750;text-align:left}.compare-table tbody td{text-align:center}
+.compare-table .policy-heading{display:block;font-weight:800;line-height:1.35;margin-bottom:5px}
+.compare-table .premium-amount{font-size:1.02rem;font-weight:850}
+.compare-table .select-policy{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 6px;border-radius:7px;border:1px solid #b7d3e8;background:#fff;color:#193b5e;cursor:pointer;font-weight:750;line-height:1.25;margin:8px auto 1px}
+.compare-table .select-policy input{width:18px;height:18px;flex:none;accent-color:#176a99}
+.compare-table td.selected-plan{background:#d1e9d9!important;box-shadow:inset 2px 0 #2b8050,inset -2px 0 #2b8050}
+.compare-table th.selected-plan{background:#175f56!important}
+.compare-table td.not-offered{color:#5b6571}
+.compare-table .minor{font-size:.85rem;font-weight:400;color:inherit;opacity:.93}
+.comparison-instructions{font-size:.9rem;color:#425d72;margin-top:0}
+@media(max-width:760px){.compare-table{min-width:710px}}
 .budget-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}.budget-strip>div{padding:13px;border:1px solid #a6bdcd;background:#f4f9fc;border-radius:9px}.budget-strip b{font-size:1.3rem;color:#193a59}
 @media(max-width:760px){.policy-grid{grid-template-columns:1fr}.budget-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}.warn{padding:12px 15px;background:#fff6e7;border-left:4px solid #bd8024;margin:12px 0}
 button{font:600 .92rem system-ui;cursor:pointer;border:1px solid var(--blue);border-radius:7px;background:white;color:var(--navy);padding:9px 12px;margin:3px 4px 3px 0}button.primary{color:white;background:var(--navy)}button:disabled{opacity:.43;cursor:not-allowed}
@@ -245,13 +261,87 @@ row.addEventListener('pointercancel',()=>{touchRank=null;row.style.touchAction='
 root.append(row);
 });
 }
-function renderPolicies(){const root=$('policyCards');const titles={auto:'Auto insurance (required liability included)',health:'Health insurance',renters:'Renters insurance',disability:'Disability income insurance',life:'Term life insurance'};Object.entries(opts).forEach(([type,options])=>{const h=document.createElement('h3');h.textContent=titles[type];root.append(h);const wrap=document.createElement('div');wrap.className='policy-grid';options.forEach((opt,i)=>{const div=document.createElement('div');div.className='choice';const label=document.createElement('label');const radio=document.createElement('input');radio.type='radio';radio.name='policy_'+type;radio.value=opt.id;radio.setAttribute('data-save','');radio.setAttribute('data-required','');const desc=document.createElement('span');const title=document.createElement('strong');title.textContent=opt.name+' — '+money(opt.prem)+'/month';const detail=document.createElement('div');detail.className='small';detail.textContent=opt.desc;desc.append(title,detail);label.append(radio,desc);div.append(label);wrap.append(div)});root.append(wrap)})}
+
+const POLICY_COMPARISON={
+auto:{title:'Auto insurance — compare what each policy protects',rows:[
+['Annual premium',o=>money(o.prem*12)],
+['Bodily injury liability',o=>o.id==='a0'?'$25,000 per person / $50,000 per accident':'Higher bodily-injury limits (not specified in this example)'],
+['Property-damage liability limit',o=>money(o.liab)+' per accident'],
+['Collision on Jordan’s car',o=>o.collision?'Covered; '+money(o.collision)+' deductible':'Not covered'],
+['Comprehensive (hail, theft, glass)',o=>o.comp?'Covered; '+money(o.comp)+' deductible':'Not covered'],
+['UM/UIM bodily injury',o=>o.uninsured?'Included':'Rejected in this fictional quote'],
+['MedPay',o=>'Rejected in this fictional quote'],
+['Rental reimbursement',o=>o.rental?money(o.rental)+'/day when eligible':'Not included'],
+['Important trade-off',o=>o.id==='a0'?'Lowest premium; no own-car protection; low liability limit':o.id==='a1'?'Protects own car; more monthly cost; no UM/UIM':'More protections; highest premium'] ]},
+health:{title:'Health insurance — compare medical cost sharing',rows:[
+['Annual premium',o=>money(o.prem*12)],
+['Deductible',o=>o.id==='h2'?'No plan deductible; full uninsured bill risk':money(o.ded)],
+['Coinsurance after deductible',o=>o.id==='h2'?'No insurer shares eligible costs':Math.round(o.coins*100)+'% paid by Jordan'],
+['In-network out-of-pocket maximum',o=>o.id==='h2'?'No insurance plan cap':money(o.oop)],
+['$21,000 covered hospital event',o=>o.id==='h2'?'Illustrative uninsured cash bill: $27,000':money(calculateHealth(o,21000).patient)+' paid by Jordan, excluding premiums'],
+['Important trade-off',o=>o.id==='h0'?'Higher premium; lower worst-case covered cost':o.id==='h1'?'Lower premium; bigger emergency bill':'No premium but major medical-debt risk'] ]},
+renters:{title:'Renters insurance — compare protection of belongings',rows:[
+['Annual premium',o=>money(o.prem*12)],
+['Personal-property limit',o=>o.limit?money(o.limit):'None'],
+['Deductible on covered property claim',o=>o.limit?money(o.ded):'All losses paid by Jordan'],
+['Belongings valued at',o=>o.id==='r0'?'Actual cash value (depreciation applies)':o.id==='r1'?'Replacement cost (subject to terms)':'No coverage'],
+['Personal liability / temporary housing',o=>o.id==='r2'?'No insurance protection':'May be covered; limits not specified in this example'],
+['Flood damage',o=>'Not included in this simplified option'],
+['Important trade-off',o=>o.id==='r0'?'Lower premium, smaller property benefit':o.id==='r1'?'Better replacement protection, higher premium':'No premiums; losses remain Jordan’s'] ]},
+disability:{title:'Disability insurance — compare income protection',rows:[
+['Annual premium',o=>money(o.prem*12)],
+['Monthly benefit if eligible',o=>o.benefit?money(o.benefit):'$0'],
+['Waiting period',o=>o.benefit?(o.wait*30)+' days (illustrative)':'No benefit'],
+['Portion of $4,500 gross pay',o=>o.benefit?'60% after waiting period':'0%'],
+['Two-month covered work absence',o=>o.id==='d0'?'Potential benefit after first full month':o.id==='d1'?'Likely no benefit before 90 days':'No payment'],
+['Important trade-off',o=>o.id==='d0'?'Higher premium; earlier income protection':o.id==='d1'?'Cheaper, but long waiting period':'No premium; work-loss income gap'] ]},
+life:{title:'Term life insurance — compare death benefits',rows:[
+['Annual premium',o=>money(o.prem*12)],
+['Death benefit',o=>o.benefit?money(o.benefit):'$0'],
+['Policy type',o=>o.id==='l2'?'No coverage':'Illustrative term life'],
+['Who receives benefit?',o=>o.id==='l2'?'Nobody':'Named beneficiary after covered death'],
+['Lost wages from illness while alive?',o=>'Not covered by basic term life'],
+['Important trade-off',o=>o.id==='l0'?'Smaller benefit, lower price':o.id==='l1'?'Bigger benefit, higher price':'No dependents today; no death benefit'] ]}
+};
+function renderPolicies(){
+const root=$('policyCards');root.innerHTML='';
+for(const [type,options] of Object.entries(opts)){
+const spec=POLICY_COMPARISON[type];const title=document.createElement('h3');title.textContent=spec.title;root.append(title);
+const instructions=document.createElement('p');instructions.className='comparison-instructions';instructions.textContent='Compare each feature across the columns. Select one policy using its radio circle in the header. All prices are fictional classroom examples.';root.append(instructions);
+const frame=document.createElement('div');frame.className='comparison-scroll';frame.setAttribute('role','region');frame.setAttribute('tabindex','0');frame.setAttribute('aria-label',spec.title+' — scroll sideways on small screens');
+const table=document.createElement('table');table.className='compare-table';const head=document.createElement('thead');const headerRow=document.createElement('tr');
+const corner=document.createElement('th');corner.scope='col';corner.textContent='Policy feature';headerRow.append(corner);
+options.forEach((opt,i)=>{
+const th=document.createElement('th');th.scope='col';th.dataset.policyCol=opt.id;
+const name=document.createElement('span');name.className='policy-heading';name.textContent=opt.name;
+const price=document.createElement('div');price.className='premium-amount';price.textContent=money(opt.prem)+'/month';
+const lab=document.createElement('label');lab.className='select-policy';lab.setAttribute('aria-label','Choose '+opt.name);
+const radio=document.createElement('input');radio.type='radio';radio.name='policy_'+type;radio.value=opt.id;radio.setAttribute('data-save','');radio.setAttribute('data-required','');
+const choose=document.createElement('span');choose.textContent='Choose this policy';
+lab.append(radio,choose);th.append(name,price,lab);headerRow.append(th)
+});
+head.append(headerRow);table.append(head);
+const body=document.createElement('tbody');
+spec.rows.forEach(([feature,fn])=>{
+const tr=document.createElement('tr');const label=document.createElement('th');label.scope='row';label.textContent=feature;tr.append(label);
+options.forEach(opt=>{const td=document.createElement('td');td.dataset.policyCol=opt.id;td.textContent=fn(opt);tr.append(td)});
+body.append(tr)
+});
+table.append(body);frame.append(table);root.append(frame)
+}
+}
+function highlightPolicies(){
+document.querySelectorAll('.compare-table').forEach(table=>{
+const selected=table.querySelector('input[type=radio]:checked')?.value||'';
+table.querySelectorAll('[data-policy-col]').forEach(cell=>cell.classList.toggle('selected-plan',!!selected&&cell.dataset.policyCol===selected))
+})
+}
 function policy(type,values){const v=(values||getValues())['policy_'+type];return opts[type].find(x=>x.id===v)||null}
 function selectedPlan(values){return Object.keys(opts).every(k=>policy(k,values))}
 function premium(values){return Object.keys(opts).reduce((a,k)=>a+(policy(k,values)?.prem||0),0)}
 function value(id){const r=document.getElementById(id);return r?r.value:''}
 function getValues(){const v={};document.querySelectorAll('[data-save]').forEach(el=>{if(el.type==='radio'){if(!(el.name in v))v[el.name]='';if(el.checked)v[el.name]=el.value}else v[el.id]=el.value});return v}
-function setValues(v){document.querySelectorAll('[data-save]').forEach(el=>{const s=v?.[el.type==='radio'?el.name:el.id]??'';if(el.type==='radio')el.checked=el.value===s;else el.value=s})}
+function setValues(v){document.querySelectorAll('[data-save]').forEach(el=>{const s=v?.[el.type==='radio'?el.name:el.id]??'';if(el.type==='radio')el.checked=el.value===s;else el.value=s});highlightPolicies()}
 function snapshot(){return {legacyState,values:getValues(),initialRank:[...initialRank],finalRank:[...finalRank],locked,monthView,reviewed,attempts:{...attempts},feedback:{...feedback},version:2}}
 function restore(s){legacyState=s?.version===2?(s.legacyState||null):(s||null);setValues(s?.values||{});initialRank=Array.isArray(s?.initialRank)&&s.initialRank.length===5?s.initialRank:shuffledForAlias(alias);finalRank=Array.isArray(s?.finalRank)&&s.finalRank.length===5?s.finalRank:[...terms];locked=!!s?.locked;monthView=Math.max(0,Math.min(12,Number(s?.monthView)||0));reviewed=!!s?.reviewed;attempts={detect:0,auto:0,health:0,...s?.attempts};feedback={detect:'',auto:'',health:'',...s?.feedback};renderRank('ranking',initialRank);renderRank('finalRanking',finalRank);updateLocked();updateControls()}
 function localKey(){return PREFIX+alias}
@@ -299,7 +389,7 @@ if(i===11){income=0;if(d.wait<=1)income=d.benefit;details='Jordan is still unabl
 allPrem+=prem;allOther+=other;allInsurer+=insurer;const monthlyTotal=prem+other;ytd+=monthlyTotal;
 let net=income-2700-prem-other;if(net>=0){if(gap>0){const pay=Math.min(gap,net);gap-=pay;net-=pay}savings+=net}else{let need=-net;const use=Math.min(savings,need);savings-=use;need-=use;gap+=need}
 out.push({month,description:details,prem,other,insurer,total:monthlyTotal,ytd,savings,gap,liability,income,allPrem,allOther,allInsurer,healthSpent,dedMet})});return out}
-function updateLocked(){const chosen=selectedPlan();$('lockedNotice').classList.toggle('off',locked&&chosen);$('yearContent').classList.toggle('off',!locked||!chosen);$('lockPlan').disabled=locked;$('unlockPlan').classList.toggle('off',!locked||monthView>0);$('lockFeedback').textContent=locked?'Initial plan locked; outcomes can now be revealed.':'Confirm all five policies before locking your plan.';document.querySelectorAll('input[name^=policy_]').forEach(el=>el.disabled=locked);if(locked){runLedger()}else{$('stressResult').textContent='Lock a complete plan to view results.';$('calmResult').textContent='Waiting for plan.'}}
+function updateLocked(){const chosen=selectedPlan();$('lockedNotice').classList.toggle('off',locked&&chosen);$('yearContent').classList.toggle('off',!locked||!chosen);$('lockPlan').disabled=locked;$('unlockPlan').classList.toggle('off',!locked||monthView>0);$('lockFeedback').textContent=locked?'Initial plan locked; outcomes can now be revealed.':'Confirm all five policies before locking your plan.';document.querySelectorAll('input[name^=policy_]').forEach(el=>el.disabled=locked);highlightPolicies();if(locked){runLedger()}else{$('stressResult').textContent='Lock a complete plan to view results.';$('calmResult').textContent='Waiting for plan.'}}
 function runLedger(){const x=ledger(),c=ledger(null,true);if(!x)return;const end=x[Math.max(0,monthView-1)];$('monthTitle').textContent=monthView?('Through '+end.month):'Events not yet revealed';$('eventDescription').textContent=monthView?end.description:'Choose Reveal next month to begin. The first month is ordinary.';$('prevMonth').disabled=monthView===0;$('nextMonth').disabled=monthView>=12;
 $('ledgerBody').innerHTML=x.slice(0,monthView).map(z=>'<tr><td>'+z.month+'</td><td class="num">'+money(z.prem)+'</td><td class="num">'+money(z.other)+'</td><td class="num">'+money(z.insurer)+'</td><td class="num">'+money(z.total)+'</td><td class="num">'+money(z.ytd)+'</td><td class="num">'+money(z.savings)+'</td><td class="num">'+money(z.gap)+'</td></tr>').join('');$('healthTracker').textContent=monthView?(policy('health').id==='h2'?'No health policy: no deductible or annual out-of-pocket maximum protects Jordan; uninsured bills remain subject to possible discounts or assistance.':'Health deductible met this year: '+money(end.dedMet)+' of '+money(policy('health').ded)+'. Covered in-network patient cost-sharing YTD: '+money(end.healthSpent)+' of '+money(policy('health').oop)+' out-of-pocket maximum. Premiums are separate.'):'Health deductible and out-of-pocket tracking begin at $0; premiums still accrue monthly.';$('ytdPrem').textContent=money(end?.allPrem||0);$('ytdLoss').textContent=money(end?.allOther||0);$('cashSummary').textContent=money(end?end.savings:1100)+' saved / '+money(end?.gap||0)+' gap';
 if(monthView<12){$('stressResult').textContent='Continue revealing months to see the complete event-year outcome.';$('calmResult').textContent='The no-claim comparison unlocks after December.';updateAlternatives();return}$('stressResult').innerHTML='<strong>Eventful year</strong><p>Premiums: '+money(x[11].allPrem)+'; other direct expenses: '+money(x[11].allOther)+'; potential extra unpaid liability: '+money(x[11].liability)+'.</p><p>Insurers paid: '+money(x[11].allInsurer)+'. Savings: '+money(x[11].savings)+'; running funding gap: '+money(x[11].gap)+'.</p>';
@@ -329,7 +419,7 @@ $('alternateType').onchange=()=>{$('alternateChoice').value='';updateAlternative
 $('reviewBtn').onclick=()=>{reviewed=true;bypass=false;dirty=true;req=makeReq();storeLocal();queueSave();$('pdfBtn').disabled=false;$('reviewMsg').textContent='Review completed locally: '+complete().pct+'% completion. Download your PDF and upload to Google Classroom.'};
 $('bypassBtn').onclick=()=>{if(!confirm('Enable the backup PDF path without submitting for review?'))return;bypass=true;$('pdfBtn').disabled=false;$('reviewMsg').textContent='Failsafe enabled. PDF will show it has not been reviewed.'};
 $('pdfBtn').onclick=makePDF;$('emergencyBtn').onclick=printEmergency;
-$('workspace').addEventListener('input',e=>{if(e.target.matches('[data-save]'))markEdit()});$('workspace').addEventListener('change',e=>{if(e.target.matches('[data-save]'))markEdit()});
+$('workspace').addEventListener('input',e=>{if(e.target.matches('[data-save]')){highlightPolicies();markEdit()}});$('workspace').addEventListener('change',e=>{if(e.target.matches('[data-save]'))markEdit()});
 document.querySelectorAll('textarea[data-save]').forEach(t=>t.addEventListener('paste',e=>{e.preventDefault();$('reviewMsg').textContent='Please type your own response rather than pasting.'}));
 window.addEventListener('beforeunload',e=>{if(alias&&dirty){e.preventDefault();e.returnValue=''}});preview();updateControls();updateProgress()}
 document.addEventListener('DOMContentLoaded',setup);
