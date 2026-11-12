@@ -182,7 +182,7 @@ const root=$('workspace'),words=Object.keys(GLOSSARY).sort((a,b)=>b.length-a.len
 const escaped=words.map(w=>w.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\function defineTerms(){'));
 const re=new RegExp('(^|[^A-Za-z])('+escaped.join('|')+')(?=$|[^A-Za-z])','gi');
 const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
-while(walker.nextNode()){const n=walker.currentNode,p=n.parentElement;if(!p||p.closest('.term, a, button, textarea, select, option, script, style, .tip, .rank, .choice')||!n.nodeValue.trim())continue;re.lastIndex=0;if(re.test(n.nodeValue))nodes.push(n)}
+while(walker.nextNode()){const n=walker.currentNode,p=n.parentElement;if(!p||p.closest('.term, a, button, textarea, select, option, script, style, .tip, .rank')||!n.nodeValue.trim())continue;re.lastIndex=0;if(re.test(n.nodeValue))nodes.push(n)}
 for(const n of nodes){const source=n.nodeValue,frag=document.createDocumentFragment();let index=0,m;re.lastIndex=0;
 while((m=re.exec(source))){const start=m.index+m[1].length,end=start+m[2].length;if(start>index)frag.append(document.createTextNode(source.slice(index,start)));const span=document.createElement('span');span.className='term';span.textContent=source.slice(start,end);span.dataset.def=GLOSSARY[m[2].toLowerCase()];frag.append(span);index=end}
 if(index<source.length)frag.append(document.createTextNode(source.slice(index)));n.replaceWith(frag)}
