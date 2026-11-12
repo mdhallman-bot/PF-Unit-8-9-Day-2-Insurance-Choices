@@ -438,7 +438,7 @@ table.addEventListener('pointerover',e=>{const b=e.target.closest('.ledger-help'
 table.addEventListener('pointerout',e=>{const b=e.target.closest('.ledger-help');if(b&&!b.contains(e.relatedTarget))hideLedgerTip()});
 table.addEventListener('focusin',e=>{const b=e.target.closest('.ledger-help');if(b)showLedgerTip(b)});
 table.addEventListener('focusout',e=>{if(e.target.closest('.ledger-help'))hideLedgerTip()});
-table.addEventListener('click',e=>{const b=e.target.closest('.ledger-help');if(!b)return;if(!$('ledgerTip').classList.contains('off')&&document.activeElement===b){hideLedgerTip();b.blur()}else showLedgerTip(b)});
+table.addEventListener('click',e=>{const b=e.target.closest('.ledger-help');if(b)showLedgerTip(b)});document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ledger-help'))hideLedgerTip()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')hideLedgerTip()});
 }
 function runLedger(){const x=ledger(),c=ledger(null,true);if(!x)return;const end=x[Math.max(0,monthView-1)];$('monthTitle').textContent=monthView?('Through '+end.month):'Events not yet revealed';$('eventDescription').textContent=monthView?end.description:'Choose Reveal next month to begin. The first month is ordinary.';$('prevMonth').disabled=monthView===0;$('nextMonth').disabled=monthView>=12;
