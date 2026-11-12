@@ -37,7 +37,19 @@ label{display:block;font-weight:660;margin:12px 0 5px}label .small{font-weight:4
 .term{color:#155783;border-bottom:2px dotted #2678a1;cursor:help;position:relative;font-weight:700}.tip{display:none;position:absolute;z-index:45;left:0;bottom:calc(100% + 5px);width:min(305px,77vw);background:#17334d;color:#fff;padding:9px;border-radius:7px;box-shadow:0 3px 12px #1235;font-size:.88rem;line-height:1.4;font-weight:400}.term:hover .tip,.term:focus .tip,.term.open .tip{display:block}
 :focus-visible{outline:3px solid #df8b0c!important;outline-offset:2px}.frames{margin:4px 0 14px;background:#f0f5f9;border-radius:7px;padding:8px 12px;color:#3f5469;font-size:.87rem}.frames p{margin:3px 0}
 .status{position:fixed;z-index:80;bottom:10px;right:10px;max-width:310px;background:white;border:1px solid var(--border);padding:9px 13px;border-radius:9px;box-shadow:0 4px 15px #1233;font-size:.82rem}
-.off{display:none!important}.feedback{min-height:1.2em;color:#245d83;font-weight:600;margin:5px 0}.pill{display:inline-block;border-radius:100px;background:#dbeaf4;color:#153a56;font-size:.8rem;font-weight:800;padding:3px 11px;margin-bottom:7px}
+.off{display:none!important}
+.lesson-tabs{position:sticky;top:0;z-index:30;display:flex;gap:6px;overflow-x:auto;background:#eef3f8;padding:11px 8px 12px;margin:14px -8px 10px;border-bottom:2px solid #cad9e6;scrollbar-width:thin}
+.lesson-tabs .lesson-tab{flex:0 0 auto;padding:10px 14px;white-space:nowrap;border-radius:9px 9px 5px 5px;border:1px solid #a9c1d3;background:white;color:#204d70;font-size:.92rem}
+.lesson-tabs .lesson-tab[aria-selected="true"]{background:var(--navy);color:white;border-color:var(--navy);box-shadow:0 3px 8px #1b3b5740}
+.lesson-tabs .lesson-tab:hover:not([aria-selected="true"]){background:#dfecf6}
+.lesson-tab-panel[hidden]{display:none!important}
+.lesson-tab-panel{animation:tab-show .12s ease-out}
+@keyframes tab-show{from{opacity:.94}to{opacity:1}}
+.section-navigation{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 18px;background:#fff;border:1px solid var(--border);border-radius:10px;margin:16px 0 30px}
+.section-navigation .step-progress{font-weight:750;color:#47637a}
+.section-navigation button{margin:0}
+@media(max-width:600px){.lesson-tabs{padding:8px 4px 10px}.lesson-tabs .lesson-tab{padding:9px 10px;font-size:.86rem}.section-navigation{padding:12px}}
+@media print{.lesson-tabs,.section-navigation{display:none!important}}.feedback{min-height:1.2em;color:#245d83;font-weight:600;margin:5px 0}.pill{display:inline-block;border-radius:100px;background:#dbeaf4;color:#153a56;font-size:.8rem;font-weight:800;padding:3px 11px;margin-bottom:7px}
 .rank{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:7px;padding:6px 9px;margin:5px 0}.rank .num{background:#e2edf5;border-radius:6px;width:29px;text-align:center;font-weight:800}.rank span.name{flex:1;font-weight:650}.rank{cursor:grab;user-select:none;touch-action:none;min-height:52px}.rank:active{cursor:grabbing}.rank.dragging{opacity:.55;border-style:dashed}.rank.drag-over{background:#dceffc;border:2px solid #22618d}.rank .grip{font-size:1.3rem;color:#61798e;letter-spacing:1px;margin-left:auto;pointer-events:none}.rank-hint{font-size:.86rem;color:#53687c;margin:5px 0 12px}
 .choice{margin:9px 0;border:1px solid var(--border);border-radius:8px;padding:9px}.choice label{display:flex;align-items:flex-start;gap:8px;margin:0;font-weight:500}.choice input[type=radio]{width:auto;flex:none;margin-top:6px}
 fieldset{border:0;padding:0;margin:8px 0}legend{font-weight:750}.tag{background:#eaf3f9;border-radius:6px;padding:2px 7px;color:#174a6e;font-size:.83rem}
@@ -194,7 +206,7 @@ const detectItems=[
 ['Another driver is at fault and their liability carrier pays for Jordan’s car repair.','Other driver liability'],
 ['A doctor’s medically necessary bill follows a collision and the auto policy includes MedPay.','Medical payments']];
 const detectChoices=['','Comprehensive','Property liability','Collision','UM/UIM bodily injury','Disability','Renters','Health','Life','Rental reimbursement','Homeowners dwelling','Other driver liability','Medical payments'];
-let alias='',rev=0,req='',dirty=false,cloudReady=false,offline=false,conflict=false,sending=false,loading=false,saveTimer=null,cloudCopy=null,localCopy=null,lastSent='',reviewed=false,bypass=false,attempts={detect:0,auto:0,health:0},feedback={detect:'',auto:'',health:''},initialRank=[...terms],finalRank=[...terms],locked=false,monthView=0,legacyState=null;
+let alias='',rev=0,req='',dirty=false,cloudReady=false,offline=false,conflict=false,sending=false,loading=false,saveTimer=null,cloudCopy=null,localCopy=null,lastSent='',reviewed=false,bypass=false,attempts={detect:0,auto:0,health:0},feedback={detect:'',auto:'',health:''},initialRank=[...terms],finalRank=[...terms],locked=false,monthView=0,legacyState=null,activeTab=0;
 const makeReq=()=>('u89-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,14));
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 
@@ -348,8 +360,8 @@ function premium(values){return Object.keys(opts).reduce((a,k)=>a+(policy(k,valu
 function value(id){const r=document.getElementById(id);return r?r.value:''}
 function getValues(){const v={};document.querySelectorAll('[data-save]').forEach(el=>{if(el.type==='radio'){if(!(el.name in v))v[el.name]='';if(el.checked)v[el.name]=el.value}else v[el.id]=el.value});return v}
 function setValues(v){document.querySelectorAll('[data-save]').forEach(el=>{const s=v?.[el.type==='radio'?el.name:el.id]??'';if(el.type==='radio')el.checked=el.value===s;else el.value=s});highlightPolicies()}
-function snapshot(){return {legacyState,values:getValues(),initialRank:[...initialRank],finalRank:[...finalRank],locked,monthView,reviewed,attempts:{...attempts},feedback:{...feedback},version:2}}
-function restore(s){legacyState=s?.version===2?(s.legacyState||null):(s||null);setValues(s?.values||{});initialRank=Array.isArray(s?.initialRank)&&s.initialRank.length===5?s.initialRank:shuffledForAlias(alias);finalRank=Array.isArray(s?.finalRank)&&s.finalRank.length===5?s.finalRank:[...terms];locked=!!s?.locked;monthView=Math.max(0,Math.min(12,Number(s?.monthView)||0));reviewed=!!s?.reviewed;attempts={detect:0,auto:0,health:0,...s?.attempts};feedback={detect:'',auto:'',health:'',...s?.feedback};renderRank('ranking',initialRank);renderRank('finalRanking',finalRank);updateLocked();updateControls()}
+function snapshot(){return {activeTab,legacyState,values:getValues(),initialRank:[...initialRank],finalRank:[...finalRank],locked,monthView,reviewed,attempts:{...attempts},feedback:{...feedback},version:2}}
+function restore(s){activeTab=Math.max(0,Math.min(6,Number(s?.activeTab)||0));legacyState=s?.version===2?(s.legacyState||null):(s||null);setValues(s?.values||{});initialRank=Array.isArray(s?.initialRank)&&s.initialRank.length===5?s.initialRank:shuffledForAlias(alias);finalRank=Array.isArray(s?.finalRank)&&s.finalRank.length===5?s.finalRank:[...terms];locked=!!s?.locked;monthView=Math.max(0,Math.min(12,Number(s?.monthView)||0));reviewed=!!s?.reviewed;attempts={detect:0,auto:0,health:0,...s?.attempts};feedback={detect:'',auto:'',health:'',...s?.feedback};renderRank('ranking',initialRank);renderRank('finalRanking',finalRank);updateLocked();updateControls()}
 function localKey(){return PREFIX+alias}
 function storeLocal(){if(!alias)return;try{localStorage.setItem(localKey(),JSON.stringify({revision:rev,requestId:req,dirty,state:snapshot(),savedAt:Date.now()}));if(dirty||!cloudReady)status('Saved on this device')}catch(e){status('Local storage unavailable — use Emergency PDF')}updateProgress()}
 function status(t){$('status').textContent=t;$('saveText').textContent=t}
@@ -368,7 +380,7 @@ else{restore(null);dirty=false;req=''}
 enter();if(dirty)queueSave();else status('Cloud verified — ready')}
 catch(e){status('Cloud unavailable — saved device work remains');$('gateMsg').textContent='Could not check cloud: '+e.message;$('offlineChoice').classList.remove('off')}
 finally{loading=false;$('startBtn').disabled=false}}
-function enter(){$('gate').classList.add('off');$('workspace').classList.remove('off');$('studentDisplay').textContent='Student alias: '+alias;preview();updateProgress();updateLocked()}
+function enter(){$('gate').classList.add('off');$('workspace').classList.remove('off');$('studentDisplay').textContent='Student alias: '+alias;preview();updateProgress();updateLocked();showLessonTab(activeTab,false)}
 function showConflict(){$('conflict').classList.remove('off');$('conflictInfo').textContent='A local unsynced version and cloud version exist for '+alias+'. Your data is safe; export a backup before choosing which to view.';status('Conflict — no overwrite')}
 function backup(){const blob=new Blob([JSON.stringify({lesson:LESSON,alias,device:localCopy||{state:snapshot(),revision:rev},cloud:cloudCopy,exported:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=window.URL.createObjectURL(blob);a.download='day2-recovery-'+alias+'.json';a.click();setTimeout(()=>window.URL.revokeObjectURL(a.href),2500)}
 function chooseCloud(){if(!cloudCopy?.found)return;backup();restore(cloudCopy.state);rev=cloudCopy.revision;dirty=false;req='';offline=false;cloudReady=true;conflict=false;$('conflict').classList.add('off');enter();storeLocal();status('Cloud verified — restored')}
@@ -458,7 +470,51 @@ function printEmergency(){if(!alias)return alert('Start with your alias first.')
 function makePDF(){if(!alias)return;if(!window.jspdf?.jsPDF){alert('Local PDF library unavailable. Use Emergency PDF. Your work is still saved.');return}storeLocal();const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'pt',format:'letter'});let y=42,page=1;const margin=42,limit=747;const clean=s=>String(s??'').replace(/[\u0000-\u001f]/g,' ').replace(/[^\x20-\x7e]/g,'?');
 const add=(line,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(bold?13:10);for(const txt of doc.splitTextToSize(clean(line),525)){if(y>limit){doc.setFontSize(9);doc.text('Alias '+alias+' | Page '+page,margin,780);doc.addPage();page++;y=42;doc.setFontSize(bold?13:10)}doc.text(txt,margin,y);y+=bold?18:14}y+=5};
 const info=reportData();add('Units 8/9 — Day 2: The Price of Protection',true);add('Student alias: '+alias,true);add('Completion grade: '+info.c.pct+'% ('+info.c.count+' of '+info.c.total+' required responses completed)',true);add('Review: '+(reviewed?'Submitted':'Bypass / not reviewed'));add('Report: '+new Date().toLocaleString());info.items.slice(2).forEach(([k,v])=>add(k+': '+v));doc.save('Insurance-Day2-'+alias+'.pdf')}
-function setup(){wireLedgerExplanations();renderDetect();renderPolicies();renderRank('ranking',shuffledForAlias('PREVIEW'));renderRank('finalRanking',finalRank);addGlossary();defineTerms();
+const LESSON_TABS=[
+{label:'1 · Priorities',ids:[0,1]},
+{label:'2 · Auto',ids:[2]},
+{label:'3 · Health',ids:[3]},
+{label:'4 · Other Insurance',ids:[4]},
+{label:'5 · Choose Policies',ids:[5]},
+{label:'6 · Jordan’s Year',ids:[6]},
+{label:'7 · Reflect & Submit',ids:[7,8]}
+];
+function setupLessonTabs(){
+const workspace=$('workspace');
+const sections=Array.from(workspace.children).filter(el=>el.tagName==='SECTION'&&el.classList.contains('panel'));
+if(sections.length!==9)throw Error('Unexpected lesson section count: '+sections.length);
+const nav=document.createElement('nav');nav.className='lesson-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Insurance assignment sections');nav.id='lessonTabs';
+workspace.insertBefore(nav,sections[0]);
+LESSON_TABS.forEach((data,i)=>{
+const button=document.createElement('button');button.type='button';button.className='lesson-tab';button.id='lesson-tab-'+i;button.setAttribute('role','tab');button.setAttribute('aria-controls','lesson-panel-'+i);button.setAttribute('aria-selected','false');button.textContent=data.label;button.addEventListener('click',()=>showLessonTab(i,true));button.addEventListener('keydown',event=>{
+if(event.key==='ArrowRight'||event.key==='ArrowLeft'||event.key==='Home'||event.key==='End'){
+event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?LESSON_TABS.length-1:(i+(event.key==='ArrowRight'?1:-1)+LESSON_TABS.length)%LESSON_TABS.length;nav.querySelectorAll('[role=tab]')[next].focus();showLessonTab(next,true);
+}});
+nav.append(button);
+const panel=document.createElement('div');panel.id='lesson-panel-'+i;panel.className='lesson-tab-panel';panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',button.id);panel.hidden=true;
+data.ids.forEach(index=>panel.append(sections[index]));
+const footer=document.createElement('div');footer.className='section-navigation no-print';
+const progress=document.createElement('span');progress.className='step-progress';progress.textContent='Section '+(i+1)+' of '+LESSON_TABS.length;
+const actions=document.createElement('div');actions.className='row';
+if(i>0){const back=document.createElement('button');back.type='button';back.textContent='← Previous Section';back.addEventListener('click',()=>showLessonTab(i-1,true));actions.append(back)}
+if(i<LESSON_TABS.length-1){const next=document.createElement('button');next.type='button';next.className='primary';next.textContent='Continue to Next Section →';next.addEventListener('click',()=>showLessonTab(i+1,true));actions.append(next)}
+footer.append(progress,actions);panel.append(footer);workspace.append(panel);
+});
+showLessonTab(0,false);
+}
+function showLessonTab(i,record){
+activeTab=Math.max(0,Math.min(LESSON_TABS.length-1,Number(i)||0));
+document.querySelectorAll('.lesson-tab').forEach((button,index)=>{const current=index===activeTab;button.setAttribute('aria-selected',String(current));button.tabIndex=current?0:-1});
+document.querySelectorAll('.lesson-tab-panel').forEach((panel,index)=>{panel.hidden=index!==activeTab});
+const activeButton=$('lesson-tab-'+activeTab);
+if(record){
+if(alias){dirty=true;req=makeReq();storeLocal();queueSave()}
+activeButton?.scrollIntoView({block:'start',inline:'nearest',behavior:'auto'});
+window.scrollTo({top:Math.max(0,window.scrollY-20),behavior:'auto'});
+}
+}
+
+function setup(){wireLedgerExplanations();renderDetect();renderPolicies();renderRank('ranking',shuffledForAlias('PREVIEW'));renderRank('finalRanking',finalRank);addGlossary();defineTerms();setupLessonTabs();
 $('startBtn').onclick=loadSession;$('retryBtn').onclick=()=>{$('offlineChoice').classList.add('off');loadSession()};$('offlineBtn').onclick=()=>{offline=true;cloudReady=false;if(localCopy){restore(localCopy.state);rev=localCopy.revision||0;dirty=localCopy.dirty;req=localCopy.requestId||makeReq()}else{restore(null);rev=0;dirty=true;req=makeReq()}enter();storeLocal()};$('backupBtn').onclick=backup;$('cloudBtn').onclick=chooseCloud;$('localBtn').onclick=chooseLocal;
 $('saveBtn').onclick=()=>{storeLocal();if(cloudReady&&!offline&&!conflict){if(!req)req=makeReq();dirty=true;saveCloud()}};
 $('detectCheck').onclick=checkDetect;$('autoCheck').onclick=()=>check('auto',['glassOld','glassNew','limitLow','limitHigh'],[300,500,35000,0]);$('healthCheck').onclick=()=>check('health',['quietG','quietH','hPremG','hPremH','hDedG','hDedH','hRemainingG','hRemainingH','hCoinsG','hCoinsH','hRawG','hRawH','hCapG','hCapH','hospitalG','hospitalH'],[4200,1920,4200,1920,1500,7000,19500,14000,3900,4200,5400,11200,4000,9000,8200,10920]);
