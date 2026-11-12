@@ -35,6 +35,11 @@ button{font:600 .92rem system-ui;cursor:pointer;border:1px solid var(--blue);bor
 input,textarea,select{background:white;border:1px solid #8298ad;border-radius:7px;font:inherit;padding:9px;width:100%;color:var(--ink)}input[type=number]{max-width:190px}textarea{min-height:82px;resize:vertical}
 label{display:block;font-weight:660;margin:12px 0 5px}label .small{font-weight:400}table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid var(--border);padding:9px;text-align:left;vertical-align:top}th{background:#e8f0f7}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .term{color:#155783;border-bottom:2px dotted #2678a1;cursor:help;position:relative;font-weight:700}.tip{display:none;position:absolute;z-index:45;left:0;bottom:calc(100% + 5px);width:min(305px,77vw);background:#17334d;color:#fff;padding:9px;border-radius:7px;box-shadow:0 3px 12px #1235;font-size:.88rem;line-height:1.4;font-weight:400}.term:hover .tip,.term:focus .tip,.term.open .tip{display:block}
+/* Comparison tables scroll horizontally; internal absolute tooltips would be clipped. */
+.comparison-scroll .term .tip,.comparison-scroll .term:hover .tip,.comparison-scroll .term:focus .tip,.comparison-scroll .term.open .tip{display:none!important}
+.compare-table thead .term{color:#fff;border-bottom-color:#c6e2ff}
+.comparison-float-tip{position:fixed;z-index:1000;background:#17334d;color:#fff;border:1px solid #6e96b5;border-radius:9px;padding:11px 13px;box-shadow:0 6px 22px #10253e55;max-width:min(340px,calc(100vw - 16px));font-size:.92rem;line-height:1.45;pointer-events:none}
+
 :focus-visible{outline:3px solid #df8b0c!important;outline-offset:2px}.frames{margin:4px 0 14px;background:#f0f5f9;border-radius:7px;padding:8px 12px;color:#3f5469;font-size:.87rem}.frames p{margin:3px 0}
 .status{position:fixed;z-index:80;bottom:10px;right:10px;max-width:310px;background:white;border:1px solid var(--border);padding:9px 13px;border-radius:9px;box-shadow:0 4px 15px #1233;font-size:.82rem}
 .off{display:none!important}
@@ -208,6 +213,32 @@ while((m=re.exec(source))){const start=m.index+m[1].length,end=start+m[2].length
 if(index<source.length)frag.append(document.createTextNode(source.slice(index)));n.replaceWith(frag)}
 }
 
+function setupComparisonTooltips(){
+const float=document.createElement('div');float.id='comparisonFloatTip';float.className='comparison-float-tip off';float.setAttribute('role','tooltip');document.body.append(float);
+let current=null;
+const hide=()=>{current=null;float.classList.add('off');float.textContent=''};
+const show=term=>{
+if(!term||!term.closest('.comparison-scroll'))return;
+const definition=term.dataset.def;if(!definition)return;
+current=term;float.textContent=definition;float.classList.remove('off');
+const target=term.getBoundingClientRect(),tip=float.getBoundingClientRect();
+const x=Math.max(8,Math.min(target.left,window.innerWidth-tip.width-8));
+let y=target.top-tip.height-9;
+if(y<8)y=Math.min(window.innerHeight-tip.height-8,target.bottom+9);
+float.style.left=x+'px';float.style.top=Math.max(8,y)+'px';
+};
+document.querySelectorAll('.comparison-scroll .term[data-def]').forEach(term=>{
+term.addEventListener('mouseenter',()=>show(term));
+term.addEventListener('mouseleave',()=>{if(current===term&&document.activeElement!==term)hide()});
+term.addEventListener('focus',()=>show(term));
+term.addEventListener('blur',()=>{if(current===term)hide()});
+term.addEventListener('click',event=>{event.stopPropagation();if(current===term&&!float.classList.contains('off'))hide();else show(term)});
+});
+document.addEventListener('pointerdown',event=>{if(!event.target.closest('.comparison-scroll .term'))hide()});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')hide()});
+window.addEventListener('scroll',hide,true);
+window.addEventListener('resize',hide);
+}
 function defineTerms(){document.querySelectorAll('.term').forEach(t=>{const d=t.getAttribute('data-def');if(!d)return;t.tabIndex=0;const n=document.createElement('span');n.className='tip';n.textContent=d;t.append(n);t.addEventListener('click',()=>t.classList.toggle('open'));t.addEventListener('blur',()=>t.classList.remove('open'));t.addEventListener('keydown',e=>{if(e.key==='Escape')t.classList.remove('open')})})}
 function shuffledForAlias(code){const arr=[...terms];let seed=0;for(const ch of String(code)){seed=(seed*31+ch.charCodeAt(0))>>>0}for(let i=arr.length-1;i>0;i--){seed=(1664525*seed+1013904223)>>>0;const j=seed%(i+1);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
 let draggingRank=null,touchRank=null;
@@ -501,7 +532,7 @@ window.scrollTo({top:Math.max(0,window.scrollY-20),behavior:'auto'});
 }
 }
 
-function setup(){wireLedgerExplanations();renderPolicies();renderRank('ranking',shuffledForAlias('PREVIEW'));renderRank('finalRanking',finalRank);addGlossary();defineTerms();setupLessonTabs();
+function setup(){wireLedgerExplanations();renderPolicies();renderRank('ranking',shuffledForAlias('PREVIEW'));renderRank('finalRanking',finalRank);addGlossary();defineTerms();setupComparisonTooltips();setupLessonTabs();
 $('startBtn').onclick=loadSession;$('retryBtn').onclick=()=>{$('offlineChoice').classList.add('off');loadSession()};$('offlineBtn').onclick=()=>{offline=true;cloudReady=false;if(localCopy){restore(localCopy.state);rev=localCopy.revision||0;dirty=localCopy.dirty;req=localCopy.requestId||makeReq()}else{restore(null);rev=0;dirty=true;req=makeReq()}enter();storeLocal()};$('backupBtn').onclick=backup;$('cloudBtn').onclick=chooseCloud;$('localBtn').onclick=chooseLocal;
 $('saveBtn').onclick=()=>{storeLocal();if(cloudReady&&!offline&&!conflict){if(!req)req=makeReq();dirty=true;saveCloud()}};
 $('autoCheck').onclick=()=>check('auto',['glassOld','glassNew','limitLow','limitHigh'],[300,500,35000,0]);$('healthCheck').onclick=()=>check('health',['quietG','quietH','hPremG','hPremH','hDedG','hDedH','hRemainingG','hRemainingH','hCoinsG','hCoinsH','hRawG','hRawH','hCapG','hCapH','hospitalG','hospitalH'],[4200,1920,4200,1920,1500,7000,19500,14000,3900,4200,5400,11200,4000,9000,8200,10920]);
